@@ -1,18 +1,40 @@
-const express = require('express')
-const studentsRoutes = require("./students")
-const cors = require("cors")
+const express = require("express")
+const listEndpoints = require("express-list-endpoints")
+const studentsRouter = require("./students")
+const projectsRouter = require("./projects")
+const problematicRoutes = require("./problematicRoutes")
+const {
+  notFoundHandler,
+  unauthorizedHandler,
+  forbiddenHandler,
+  catchAllHandler,
+} = require("./errorHandling")
+
 const server = express()
 
-const port = 3001
+const port = process.env.PORT || 3001
 
+const loggerMiddleware = (req, res, next) => {
+  console.log(`Logged ${req.url} ${req.method} -- ${new Date()}`)
+  next()
+}
 
+server.use(express.json())
+server.use(loggerMiddleware)
 
+server.use("/students", studentsRouter)
+server.use("/projects", projectsRouter)
+server.use("/problems", problematicRoutes)
 
-server.use(express.json()) // must be specified 
+// ERROR HANDLERS
 
-server.use("/students", studentsRoutes)
+server.use(notFoundHandler)
+server.use(unauthorizedHandler)
+server.use(forbiddenHandler)
+server.use(catchAllHandler)
 
-server.use(cors())
+console.log(listEndpoints(server))
+
 server.listen(port, () => {
-    console.log("Server is running on port:", port)
+  console.log(`Server is running on port ${port}`)
 })
